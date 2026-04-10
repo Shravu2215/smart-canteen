@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard - PCCOER Canteen</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root {
+      --primary:#e85d04; --primary-dark:#c44d02; --primary-light:#fff3ed;
+      --bg:#f4f6f9; --white:#fff; --text:#1a1a2e; --text-light:#6b7280;
+      --border:#e5e7eb; --success:#10b981; --danger:#ef4444; --blue:#3b82f6;
+      --purple:#8b5cf6; --warning:#f59e0b;
+      --radius:14px; --shadow:0 2px 12px rgba(0,0,0,0.08);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+    a{color:var(--primary);text-decoration:none}
+    input,select,textarea{font-family:'Nunito',sans-serif;font-size:14px;border:2px solid var(--border);border-radius:10px;padding:9px 13px;width:100%;outline:none;transition:border-color .2s;background:var(--white)}
+    input:focus,select:focus{border-color:var(--primary)}
+    button{cursor:pointer;font-family:'Nunito',sans-serif;border:none}
+
+    /* SIDEBAR */
+    .sidebar{width:220px;background:#1a1a2e;color:white;display:flex;flex-direction:column;flex-shrink:0;min-height:100vh;position:fixed;top:0;left:0;bottom:0;z-index:50}
+    .sidebar-logo{padding:18px 16px;display:flex;align-items:center;gap:10px;font-size:1rem;font-weight:900;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:6px}
+    .sidebar-logo i{color:var(--primary)}
+    .nav-item{background:transparent;color:rgba(255,255,255,0.6);padding:11px 16px;text-align:left;font-size:0.86rem;font-weight:700;display:flex;align-items:center;gap:10px;transition:all .2s;border-left:3px solid transparent;width:100%}
+    .nav-item i{width:18px}
+    .nav-item:hover{background:rgba(255,255,255,0.08);color:white}
+    .nav-item.active{background:rgba(232,93,4,0.15);color:var(--primary);border-left-color:var(--primary)}
+    .sidebar-footer{margin-top:auto;padding:14px 10px}
+    .logout-btn{background:rgba(239,68,68,0.15);color:#fca5a5;border-radius:10px;padding:10px 14px;font-size:0.84rem;font-weight:700;display:flex;align-items:center;gap:8px;width:100%;justify-content:center}
+
+    /* MAIN */
+    .main{margin-left:220px;flex:1;padding:24px;min-height:100vh}
+    .tab-content{display:none}.tab-content.active{display:block}
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+    .page-header h2{font-size:1.3rem;font-weight:900}
+
+    /* CARDS */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:14px;margin-bottom:22px}
+    .stat-card{background:var(--white);border-radius:var(--radius);padding:18px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
+    .stat-card i{font-size:1.8rem}
+    .stat-card strong{display:block;font-size:1.4rem;font-weight:900}
+    .stat-card small{font-size:0.76rem;color:var(--text-light)}
+    .stat-card.orange i{color:var(--primary)} .stat-card.green i{color:var(--success)}
+    .stat-card.blue i{color:var(--blue)} .stat-card.purple i{color:var(--purple)}
+    .stat-card.yellow i{color:var(--warning)}
+
+    /* TABLE */
+    .table-card{background:var(--white);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
+    .table-card h3{font-size:1rem;font-weight:800;margin-bottom:14px}
+    table{width:100%;border-collapse:collapse;font-size:0.86rem}
+    th{text-align:left;padding:8px 12px;background:var(--bg);font-size:0.75rem;text-transform:uppercase;color:var(--text-light)}
+    td{padding:10px 12px;border-bottom:1px solid var(--border)}
+    tr:last-child td{border:none}
+    .badge{padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;display:inline-block}
+    .badge.ready{background:#dcfce7;color:#166534} .badge.pending{background:#fef3c7;color:#92400e}
+    .badge.paid{background:#dbeafe;color:#1e40af} .badge.breakfast{background:#fef3c7;color:#92400e}
+    .badge.lunch{background:#dcfce7;color:#166534} .badge.dinner{background:#ede9fe;color:#5b21b6}
+
+    /* FORM */
+    .form-card{background:var(--white);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
+    .form-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+    .form-group{flex:1;min-width:180px;display:flex;flex-direction:column;gap:5px}
+    .form-group label{font-size:0.82rem;font-weight:700;color:var(--text-light)}
+    .btn-primary{background:var(--primary);color:white;padding:10px 20px;border-radius:10px;font-weight:800;font-size:0.88rem;display:inline-flex;align-items:center;gap:7px;transition:all .2s}
+    .btn-primary:hover{background:var(--primary-dark)}
+    .btn-outline{background:transparent;color:var(--primary);border:2px solid var(--primary);padding:8px 16px;border-radius:10px;font-weight:700;font-size:0.84rem;transition:all .2s}
+    .btn-danger{background:var(--danger);color:white;padding:7px 13px;border-radius:8px;font-size:0.8rem;font-weight:700}
+
+    /* MENU GRID */
+    .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+    .menu-item-card{background:var(--white);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+    .menu-item-card img{width:100%;height:110px;object-fit:cover}
+    .menu-item-body{padding:10px 12px}
+    .menu-item-body strong{display:block;font-size:0.88rem;font-weight:800}
+    .menu-item-body .price{color:var(--primary);font-weight:900;font-size:0.95rem}
+    .menu-item-body .cat{font-size:0.72rem;color:var(--text-light);margin-bottom:8px}
+    .item-actions{display:flex;gap:6px;margin-top:8px}
+
+    /* QR SECTION */
+    .qr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+    .qr-card{background:var(--white);border-radius:var(--radius);padding:24px;text-align:center;box-shadow:var(--shadow)}
+    .qr-card h3{font-size:1rem;font-weight:900;margin-bottom:4px}
+    .qr-card p{font-size:0.8rem;color:var(--text-light);margin-bottom:16px}
+    .qr-card img{border-radius:10px;border:2px solid var(--border);max-width:200px}
+    .qr-card .meal-icon{font-size:2.5rem;margin-bottom:8px}
+    .qr-actions{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+    .checkin-count{background:var(--primary-light);color:var(--primary);border-radius:20px;padding:4px 14px;font-size:0.82rem;font-weight:800;margin-bottom:10px;display:inline-block}
+
+    /* MEAL CHECKINS TABLE */
+    .meal-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+    .meal-stat{background:var(--white);border-radius:var(--radius);padding:18px;text-align:center;box-shadow:var(--shadow)}
+    .meal-stat .icon{font-size:2rem;margin-bottom:6px}
+    .meal-stat strong{font-size:1.6rem;font-weight:900;display:block}
+    .meal-stat small{color:var(--text-light);font-size:0.8rem}
+
+    /* ALERTS */
+    .alert{padding:12px 16px;border-radius:10px;font-size:0.87rem;margin-bottom:14px;display:none}
+    .alert.success{background:#dcfce7;color:#166534;border:1px solid #a7f3d0}
+    .alert.error{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+    .alert.show{display:block}
+
+    /* LOADING */
+    .loading{text-align:center;padding:40px;color:var(--text-light);font-size:0.9rem}
+    .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .9s linear infinite;margin:0 auto 12px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* LOGIN OVERLAY */
+    #login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#e85d04,#f48c06);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px}
+    .login-box{background:white;border-radius:20px;padding:32px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+    .login-box h1{font-size:1.3rem;font-weight:900;margin-bottom:6px}
+    .login-box p{color:var(--text-light);font-size:0.85rem;margin-bottom:24px}
+    .login-icon{font-size:3rem;margin-bottom:12px}
+
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%);transition:transform .3s}
+      .sidebar.open{transform:translateX(0)}
+      .main{margin-left:0}
+      .qr-grid{grid-template-columns:1fr}
+      .stats-grid{grid-template-columns:repeat(2,1fr)}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== ADMIN LOGIN OVERLAY ===== -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-icon">🍽️</div>
+    <h1>Admin Dashboard</h1>
+    <p>PCCOER Smart Canteen</p>
+    <div id="login-alert" class="alert error"></div>
+    <div style="display:flex;flex-direction:column;gap:12px;text-align:left">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="admin-user" placeholder="admin"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="admin-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <button class="btn-primary" style="width:100%;justify-content:center;padding:13px" onclick="doLogin()">
+        <i class="fa-solid fa-right-to-bracket"></i> Login
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <i class="fa-solid fa-utensils"></i>
+    <span>PCCOER Canteen</span>
+  </div>
+  <nav>
+    <button class="nav-item active" onclick="switchTab('overview',this)"><i class="fa-solid fa-chart-line"></i> Overview</button>
+    <button class="nav-item" onclick="switchTab('menu',this)"><i class="fa-solid fa-bowl-food"></i> Menu</button>
+    <button class="nav-item" onclick="switchTab('orders',this)"><i class="fa-solid fa-receipt"></i> Orders</button>
+    <button class="nav-item" onclick="switchTab('qr',this)"><i class="fa-solid fa-qrcode"></i> QR Codes</button>
+    <button class="nav-item" onclick="switchTab('checkins',this)"><i class="fa-solid fa-check-double"></i> Check-ins</button>
+    <button class="nav-item" onclick="switchTab('hostel',this)"><i class="fa-solid fa-house"></i> Hostel Students</button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="logout-btn" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main">
+
+  <!-- OVERVIEW -->
+  <div class="tab-content active" id="tab-overview">
+    <div class="page-header">
+      <h2>Dashboard Overview</h2>
+      <span style="background:#fff3ed;color:#c44d02;padding:5px 14px;border-radius:20px;font-size:0.8rem;font-weight:800">
+        <i class="fa-solid fa-circle" style="color:#10b981;font-size:0.5rem;vertical-align:middle;margin-right:4px"></i> Live
+      </span>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card orange"><i class="fa-solid fa-cart-shopping"></i><div><strong id="stat-orders">—</strong><small>Today's Orders</small></div></div>
+      <div class="stat-card green"><i class="fa-solid fa-indian-rupee-sign"></i><div><strong id="stat-revenue">—</strong><small>Today's Revenue</small></div></div>
+      <div class="stat-card blue"><i class="fa-solid fa-users"></i><div><strong id="stat-users">—</strong><small>Total Users</small></div></div>
+      <div class="stat-card purple"><i class="fa-solid fa-bowl-food"></i><div><strong id="stat-items">—</strong><small>Menu Items</small></div></div>
+      <div class="stat-card yellow"><i class="fa-solid fa-sun"></i><div><strong id="stat-breakfast">—</strong><small>Breakfast Today</small></div></div>
+      <div class="stat-card yellow"><i class="fa-solid fa-bowl-food"></i><div><strong id="stat-lunch">—</strong><small>Lunch Today</small></div></div>
+      <div class="stat-card yellow"><i class="fa-solid fa-moon"></i><div><strong id="stat-dinner">—</strong><small>Dinner Today</small></div></div>
+    </div>
+    <div class="table-card">
+      <h3>Today's Orders</h3>
+      <div id="overview-orders"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- MENU MANAGEMENT -->
+  <div class="tab-content" id="tab-menu">
+    <div class="page-header">
+      <h2>Menu Management</h2>
+      <button class="btn-primary" onclick="toggleAddForm()"><i class="fa-solid fa-plus"></i> Add Item</button>
+    </div>
+    <div id="add-form-wrap" class="form-card" style="display:none">
+      <h3 style="font-size:1rem;margin-bottom:14px">Add New Menu Item</h3>
+      <div id="menu-alert" class="alert"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Item Name *</label><input type="text" id="f-name" placeholder="e.g. Vada Pav"/></div>
+        <div class="form-group"><label>Price (₹) *</label><input type="number" id="f-price" placeholder="e.g. 20"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Category *</label>
+          <select id="f-cat"><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="snacks">Snacks</option></select>
+        </div>
+        <div class="form-group"><label>Image URL</label><input type="url" id="f-img" placeholder="https://..."/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:2"><label>Description</label><input type="text" id="f-desc" placeholder="Short description"/></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-primary" onclick="addItem()"><i class="fa-solid fa-plus"></i> Add Item</button>
+        <button class="btn-outline" onclick="toggleAddForm()">Cancel</button>
+      </div>
+    </div>
+    <div class="menu-grid" id="menu-grid"><div class="loading"><div class="spinner"></div>Loading menu...</div></div>
+  </div>
+
+  <!-- ORDERS -->
+  <div class="tab-content" id="tab-orders">
+    <div class="page-header"><h2>Today's Orders</h2>
+      <button class="btn-outline" onclick="loadOrders()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+    </div>
+    <div class="table-card">
+      <div id="orders-table"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- QR CODES -->
+  <div class="tab-content" id="tab-qr">
+    <div class="page-header"><h2>Meal QR Codes</h2>
+      <button class="btn-outline" onclick="loadQR()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+    </div>
+    <p style="color:var(--text-light);font-size:0.88rem;margin-bottom:20px">
+      Print or display these QR codes at the mess. Students scan once per meal per day.
+    </p>
+    <div class="qr-grid" id="qr-grid">
+      <div class="loading"><div class="spinner"></div>Generating QR codes...</div>
+    </div>
+  </div>
+
+  <!-- CHECK-INS -->
+  <div class="tab-content" id="tab-checkins">
+    <div class="page-header"><h2>Today's Meal Check-ins</h2>
+      <button class="btn-outline" onclick="loadCheckins()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+    </div>
+    <div class="meal-stats-grid">
+      <div class="meal-stat"><div class="icon">🌅</div><strong id="ci-breakfast">—</strong><small>Breakfast</small></div>
+      <div class="meal-stat"><div class="icon">☀️</div><strong id="ci-lunch">—</strong><small>Lunch</small></div>
+      <div class="meal-stat"><div class="icon">🌙</div><strong id="ci-dinner">—</strong><small>Dinner</small></div>
+    </div>
+    <div class="table-card">
+      <div id="checkins-table"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- HOSTEL STUDENTS -->
+  <div class="tab-content" id="tab-hostel">
+    <div class="page-header"><h2>Hostel Students</h2>
+      <button class="btn-primary" onclick="toggleHostelForm()"><i class="fa-solid fa-plus"></i> Add Student</button>
+    </div>
+    <div id="hostel-form-wrap" class="form-card" style="display:none">
+      <h3 style="font-size:1rem;margin-bottom:14px">Add Hostel Student</h3>
+      <div id="hostel-alert" class="alert"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Full Name *</label><input type="text" id="h-name" placeholder="Student name"/></div>
+        <div class="form-group"><label>Mess ID *</label><input type="text" id="h-messid" placeholder="e.g. MESS101"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Phone *</label><input type="tel" id="h-phone" placeholder="10-digit phone"/></div>
+        <div class="form-group"><label>Password *</label><input type="password" id="h-pw" placeholder="Set a password"/></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-primary" onclick="addHostelStudent()"><i class="fa-solid fa-plus"></i> Add Student</button>
+        <button class="btn-outline" onclick="toggleHostelForm()">Cancel</button>
+      </div>
+    </div>
+    <div class="table-card">
+      <div id="hostel-table"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const API = ''; // same origin — backend serves this file
+let adminToken = localStorage.getItem('admin_token');
+
+// ===== AUTH =====
+window.onload = () => {
+  if (adminToken) { document.getElementById('login-overlay').style.display = 'none'; loadOverview(); }
+};
+
+async function doLogin() {
+  const username = document.getElementById('admin-user').value.trim();
+  const password = document.getElementById('admin-pass').value.trim();
+  if (!username || !password) return showLoginAlert('Enter username and password');
+  try {
+    const res  = await api('/api/auth/admin-login', 'POST', { username, password }, false);
+    adminToken = res.token;
+    localStorage.setItem('admin_token', adminToken);
+    document.getElementById('login-overlay').style.display = 'none';
+    loadOverview();
+  } catch (e) { showLoginAlert(e.message); }
+}
+
+function showLoginAlert(msg) {
+  const el = document.getElementById('login-alert');
+  el.textContent = msg; el.classList.add('show');
+}
+
+function doLogout() {
+  localStorage.removeItem('admin_token');
+  adminToken = null;
+  location.reload();
+}
+
+// ===== API HELPER =====
+async function api(path, method = 'GET', body = null, auth = true) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (auth && adminToken) headers['Authorization'] = `Bearer ${adminToken}`;
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+// ===== TAB SWITCHING =====
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'overview')  loadOverview();
+  if (name === 'menu')      loadMenu();
+  if (name === 'orders')    loadOrders();
+  if (name === 'qr')        loadQR();
+  if (name === 'checkins')  loadCheckins();
+  if (name === 'hostel')    loadHostelStudents();
+}
+
+// ===== OVERVIEW =====
+async function loadOverview() {
+  try {
+    const stats = await api('/api/admin/stats');
+    document.getElementById('stat-orders').textContent    = stats.todayOrders;
+    document.getElementById('stat-revenue').textContent   = '₹' + stats.todayRevenue;
+    document.getElementById('stat-users').textContent     = stats.totalUsers;
+    document.getElementById('stat-items').textContent     = stats.totalMenuItems;
+    document.getElementById('stat-breakfast').textContent = stats.meals.breakfast;
+    document.getElementById('stat-lunch').textContent     = stats.meals.lunch;
+    document.getElementById('stat-dinner').textContent    = stats.meals.dinner;
+
+    const orders = await api('/api/orders/today');
+    renderOrdersTable('overview-orders', orders);
+  } catch (e) { console.error(e); }
+}
+
+// ===== MENU =====
+async function loadMenu() {
+  document.getElementById('menu-grid').innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+  try {
+    const items = await api('/api/menu/all');
+    if (!items.length) { document.getElementById('menu-grid').innerHTML = '<p style="color:var(--text-light);padding:20px">No menu items yet. Add your first item!</p>'; return; }
+    document.getElementById('menu-grid').innerHTML = items.map(item => `
+      <div class="menu-item-card">
+        <img src="${item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&q=80'}" 
+             alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&q=80'"/>
+        <div class="menu-item-body">
+          <strong>${item.name}</strong>
+          <div class="cat">${capitalize(item.category)} · ${item.available ? '✅ Available' : '❌ Hidden'}</div>
+          <div class="price">₹${item.price}</div>
+          <div class="item-actions">
+            <button class="btn-outline" style="padding:5px 10px;font-size:0.78rem" onclick="toggleAvailable('${item._id}', ${item.available})">
+              ${item.available ? 'Hide' : 'Show'}
+            </button>
+            <button class="btn-danger" onclick="deleteItem('${item._id}')"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch (e) { document.getElementById('menu-grid').innerHTML = '<p style="color:red;padding:20px">Error loading menu: ' + e.message + '</p>'; }
+}
+
+function toggleAddForm() {
+  const f = document.getElementById('add-form-wrap');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+async function addItem() {
+  const name  = document.getElementById('f-name').value.trim();
+  const price = document.getElementById('f-price').value;
+  const cat   = document.getElementById('f-cat').value;
+  const img   = document.getElementById('f-img').value.trim();
+  const desc  = document.getElementById('f-desc').value.trim();
+  if (!name || !price) return showAlert('menu-alert', 'error', 'Name and price are required');
+  try {
+    await api('/api/menu', 'POST', { name, price: Number(price), category: cat, image: img, desc });
+    showAlert('menu-alert', 'success', 'Item added!');
+    ['f-name','f-price','f-img','f-desc'].forEach(id => document.getElementById(id).value = '');
+    setTimeout(() => { document.getElementById('add-form-wrap').style.display = 'none'; loadMenu(); }, 800);
+  } catch (e) { showAlert('menu-alert', 'error', e.message); }
+}
+
+async function deleteItem(id) {
+  if (!confirm('Delete this item?')) return;
+  try { await api('/api/menu/' + id, 'DELETE'); loadMenu(); }
+  catch (e) { alert('Error: ' + e.message); }
+}
+
+async function toggleAvailable(id, current) {
+  try { await api('/api/menu/' + id, 'PUT', { available: !current }); loadMenu(); }
+  catch (e) { alert('Error: ' + e.message); }
+}
+
+// ===== ORDERS =====
+async function loadOrders() {
+  document.getElementById('orders-table').innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+  try {
+    const orders = await api('/api/orders/today');
+    renderOrdersTable('orders-table', orders);
+  } catch (e) { document.getElementById('orders-table').innerHTML = '<p style="color:red;padding:16px">' + e.message + '</p>'; }
+}
+
+function renderOrdersTable(containerId, orders) {
+  if (!orders.length) { document.getElementById(containerId).innerHTML = '<p style="color:var(--text-light);padding:16px">No orders yet today.</p>'; return; }
+  document.getElementById(containerId).innerHTML = `
+    <table>
+      <thead><tr><th>Order ID</th><th>Student</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>${orders.map(o => `
+        <tr>
+          <td><strong>${o.orderId}</strong></td>
+          <td>${o.userName || '—'}</td>
+          <td style="max-width:200px;font-size:0.82rem">${o.items.map(i => i.name + ' ×' + i.qty).join(', ')}</td>
+          <td><strong>₹${o.total}</strong></td>
+          <td><span class="badge paid">${o.paymentMethod.toUpperCase()}</span></td>
+          <td><span class="badge ${o.orderStatus}">${capitalize(o.orderStatus)}</span></td>
+          <td>${o.orderStatus === 'pending' 
+            ? `<button class="btn-primary" style="padding:5px 12px;font-size:0.78rem" onclick="markReady('${o._id}',this)">Mark Ready</button>` 
+            : '—'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+async function markReady(id, btn) {
+  btn.disabled = true; btn.textContent = '✓ Ready';
+  try { await api('/api/orders/' + id + '/status', 'PATCH', { orderStatus: 'ready' }); }
+  catch (e) { btn.disabled = false; btn.textContent = 'Mark Ready'; }
+}
+
+// ===== QR CODES =====
+async function loadQR() {
+  document.getElementById('qr-grid').innerHTML = '<div class="loading"><div class="spinner"></div>Generating QR codes...</div>';
+  try {
+    const stats = await api('/api/meals/stats/' + new Date().toISOString().slice(0,10));
+    const qrs   = await api('/api/qr/all');
+    const meals = [
+      { key: 'breakfast', label: 'Breakfast', icon: '🌅', time: '7:00 AM – 9:00 AM' },
+      { key: 'lunch',     label: 'Lunch',     icon: '☀️', time: '12:00 PM – 2:00 PM' },
+      { key: 'dinner',    label: 'Dinner',    icon: '🌙', time: '7:00 PM – 9:00 PM' },
+    ];
+    document.getElementById('qr-grid').innerHTML = meals.map(m => `
+      <div class="qr-card">
+        <div class="meal-icon">${m.icon}</div>
+        <h3>${m.label}</h3>
+        <p>${m.time}</p>
+        <span class="checkin-count">${stats[m.key] || 0} check-ins today</span>
+        <br/>
+        <img src="${qrs[m.key]}" alt="${m.label} QR code" style="width:180px;height:180px"/>
+        <div class="qr-actions">
+          <button class="btn-primary" style="padding:7px 14px;font-size:0.82rem" onclick="printQR('${m.key}','${m.icon} ${m.label}')">
+            <i class="fa-solid fa-print"></i> Print
+          </button>
+          <a href="${qrs[m.key]}" download="qr-${m.key}.png" class="btn-outline" style="padding:7px 14px;font-size:0.82rem;text-decoration:none">
+            <i class="fa-solid fa-download"></i> Save
+          </a>
+        </div>
+      </div>`).join('');
+  } catch (e) { document.getElementById('qr-grid').innerHTML = '<p style="color:red;padding:16px">Error: ' + e.message + '</p>'; }
+}
+
+function printQR(meal, label) {
+  const w = window.open('', '_blank');
+  const qrImg = document.querySelector(`#qr-grid img[alt="${label.split(' ')[1]} QR code"]`);
+  w.document.write(`<html><body style="text-align:center;font-family:sans-serif;padding:40px">
+    <h2 style="color:#e85d04;margin-bottom:8px">PCCOER Smart Canteen</h2>
+    <h1 style="font-size:2rem;margin-bottom:20px">${label}</h1>
+    <img src="${qrImg ? qrImg.src : ''}" style="width:300px;height:300px"/>
+    <p style="margin-top:20px;color:#666;font-size:0.9rem">Scan once per meal · Valid for today only</p>
+    <script>window.onload=()=>{window.print();window.close()}<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+// ===== CHECK-INS =====
+async function loadCheckins() {
+  document.getElementById('checkins-table').innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+  try {
+    const [checkins, stats] = await Promise.all([
+      api('/api/meals/today'),
+      api('/api/meals/stats/' + new Date().toISOString().slice(0,10))
+    ]);
+    document.getElementById('ci-breakfast').textContent = stats.breakfast;
+    document.getElementById('ci-lunch').textContent     = stats.lunch;
+    document.getElementById('ci-dinner').textContent    = stats.dinner;
+
+    if (!checkins.length) { document.getElementById('checkins-table').innerHTML = '<p style="color:var(--text-light);padding:16px">No check-ins yet today.</p>'; return; }
+    document.getElementById('checkins-table').innerHTML = `
+      <table>
+        <thead><tr><th>Student</th><th>Mess ID</th><th>Meal</th><th>Time</th></tr></thead>
+        <tbody>${checkins.map(c => `
+          <tr>
+            <td>${c.userName || '—'}</td>
+            <td>${c.messId}</td>
+            <td><span class="badge ${c.meal}">${capitalize(c.meal)}</span></td>
+            <td>${new Date(c.scannedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+    // Auto refresh every 5 seconds
+    setTimeout(loadCheckins, 5000);
+  } catch (e) { document.getElementById('checkins-table').innerHTML = '<p style="color:red;padding:16px">' + e.message + '</p>'; }
+}
+
+// ===== HOSTEL STUDENTS =====
+async function loadHostelStudents() {
+  document.getElementById('hostel-table').innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+  try {
+    const students = await api('/api/admin/hostel-students');
+    if (!students.length) { document.getElementById('hostel-table').innerHTML = '<p style="color:var(--text-light);padding:16px">No hostel students added yet.</p>'; return; }
+    document.getElementById('hostel-table').innerHTML = `
+      <table>
+        <thead><tr><th>Name</th><th>Mess ID</th><th>Phone</th><th>Added</th></tr></thead>
+        <tbody>${students.map(s => `
+          <tr>
+            <td><strong>${s.name}</strong></td>
+            <td>${s.messId}</td>
+            <td>${s.phone}</td>
+            <td>${new Date(s.createdAt).toLocaleDateString('en-IN')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch (e) { document.getElementById('hostel-table').innerHTML = '<p style="color:red;padding:16px">' + e.message + '</p>'; }
+}
+
+function toggleHostelForm() {
+  const f = document.getElementById('hostel-form-wrap');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+async function addHostelStudent() {
+  const name   = document.getElementById('h-name').value.trim();
+  const messId = document.getElementById('h-messid').value.trim();
+  const phone  = document.getElementById('h-phone').value.trim();
+  const pw     = document.getElementById('h-pw').value.trim();
+  if (!name || !messId || !phone || !pw) return showAlert('hostel-alert', 'error', 'All fields required');
+  try {
+    await api('/api/admin/hostel-students', 'POST', { name, messId, phone, password: pw });
+    showAlert('hostel-alert', 'success', 'Student added!');
+    ['h-name','h-messid','h-phone','h-pw'].forEach(id => document.getElementById(id).value = '');
+    setTimeout(() => { document.getElementById('hostel-form-wrap').style.display = 'none'; loadHostelStudents(); }, 800);
+  } catch (e) { showAlert('hostel-alert', 'error', e.message); }
+}
+
+// ===== UTILS =====
+function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+
+function showAlert(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'alert ' + type + ' show';
+  el.textContent = msg;
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meal Check-in - PCCOER Canteen</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e85d04, #f48c06);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 36px 28px;
+      max-width: 380px; width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .logo { font-size: 2rem; margin-bottom: 6px; }
+    .logo-text { font-size: 1.1rem; font-weight: 900; color: #e85d04; margin-bottom: 24px; }
+    .meal-icon { font-size: 3rem; margin-bottom: 12px; }
+    h2 { font-size: 1.3rem; font-weight: 900; margin-bottom: 8px; color: #1a1a2e; }
+    p  { font-size: 0.9rem; color: #6b7280; margin-bottom: 20px; }
+    .spinner {
+      width: 44px; height: 44px;
+      border: 4px solid #f3f4f6;
+      border-top-color: #e85d04;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn {
+      background: #e85d04;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 28px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 6px;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #c44d02; }
+    .btn.secondary {
+      background: #f3f4f6;
+      color: #1a1a2e;
+      margin-top: 10px;
+    }
+    #status { display: none; }
+    .result-icon { font-size: 3.5rem; margin-bottom: 12px; }
+    .info-box { background: #f9f7f4; border-radius: 12px; padding: 14px 16px; margin: 16px 0; text-align: left; }
+    .info-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.88rem; }
+    .info-row span:first-child { color: #6b7280; }
+    .info-row span:last-child  { font-weight: 800; }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 1rem;
+      margin-bottom: 16px;
+      outline: none;
+    }
+    input:focus { border-color: #e85d04; }
+  </style>
+</head>
+<body>
+<div class="card" id="card">
+
+  <!-- FORM STATE -->
+  <div id="state-form">
+    <div class="logo">🍽️</div>
+    <div class="logo-text">PCCOER Smart Canteen</div>
+    <div class="meal-icon" id="meal-icon">🍽️</div>
+    <h2 id="meal-title">Check-in for Meal</h2>
+    <p>Enter your name to mark your meal as collected.</p>
+    <input type="text" id="student-name" placeholder="Your full name" required>
+    <button class="btn" onclick="submitCheckin()">Submit ✓</button>
+  </div>
+
+  <!-- LOADING STATE -->
+  <div id="state-loading" style="display:none">
+    <div class="logo">🍽️</div>
+    <div class="logo-text">PCCOER Smart Canteen</div>
+    <div class="spinner"></div>
+    <h2>Checking in...</h2>
+    <p>Please wait while we register your meal.</p>
+  </div>
+
+  <!-- RESULT STATE -->
+  <div id="state-result" style="display:none">
+    <div class="logo">🍽️</div>
+    <div class="logo-text">PCCOER Smart Canteen</div>
+    <div class="result-icon" id="res-icon"></div>
+    <h2 id="res-title"></h2>
+    <p id="res-msg"></p>
+    <button class="btn" onclick="window.close()">Done ✓</button>
+  </div>
+
+</div>
+
+<script>
+  const mealIcons = { breakfast: '🌅', lunch: '☀️', dinner: '🌙' };
+  const mealNames = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' };
+
+  const params = new URLSearchParams(window.location.search);
+  const meal = params.get('meal') || 'lunch';
+  const API_BASE = window.location.origin;
+
+  document.getElementById('meal-icon').textContent = mealIcons[meal] || '🍽️';
+  document.getElementById('meal-title').textContent = `Check-in for ${mealNames[meal] || 'Meal'}`;
+
+  async function submitCheckin() {
+    const name = document.getElementById('student-name').value.trim();
+    if (!name) {
+      alert('Please enter your name');
+      return;
+    }
+
+    document.getElementById('state-form').style.display = 'none';
+    document.getElementById('state-loading').style.display = 'block';
+
+    try {
+      const res = await fetch(`${API_BASE}/api/meals/checkin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userName: name, meal })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        showResult('✅', 'Success!', data.message);
+      } else {
+        showResult('❌', 'Error', data.error);
+      }
+    } catch (err) {
+      showResult('❌', 'Connection Error', 'Could not reach the server. Check your internet and try again.');
+    }
+  }
+
+  function showResult(icon, title, msg) {
+    document.getElementById('state-loading').style.display = 'none';
+    document.getElementById('state-result').style.display = 'block';
+    document.getElementById('res-icon').textContent = icon;
+    document.getElementById('res-title').textContent = title;
+    document.getElementById('res-msg').textContent = msg;
+  }
+</script>
+
+  // Also check if user just logged in and has a pending scan
+  window.addEventListener('storage', e => {
+    if (e.key === 'canteen_token' && e.newValue) {
+      window.location.reload();
+    }
+  });
+</script>
+</body>
+</html>
