@@ -1,22 +1,32 @@
 const router = require('express').Router();
 const Order = require('../models/Order');
+const MealCheckIn = require('../models/MealCheckIn');
 const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 
 // PLACE order
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { items, total, paymentMethod } = req.body;
+    const { items, total, paymentMethod, meal } = req.body;
     if (!items || !items.length || !total || !paymentMethod) {
       return res.status(400).json({ error: 'Missing order details' });
     }
     const order = await Order.create({
       userId: req.user.id,
       userName: req.user.name,
+      meal, // track which meal this order is for
       items,
       total,
       paymentMethod,
       paymentStatus: paymentMethod === 'cash' ? 'pending' : 'paid',
     });
+    // Mark meal as "ordered" in check-ins
+    if (meal) {
+      const today = new Date().toISOString().slice(0, 10);
+      await MealCheckIn.updateOne(
+        { userName: req.user.name, meal, date: today },
+        { orderStatus: 'ordered' }
+      );
+    }
     res.status(201).json(order);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -61,6 +71,15 @@ router.patch('/:id/status', adminMiddleware, async (req, res) => {
     const { orderStatus } = req.body;
     const order = await Order.findByIdAndUpdate(req.params.id, { orderStatus }, { new: true });
     if (!order) return res.status(404).json({ error: 'Order not found' });
+    
+    // When order is collected, mark meal as "completed" in check-ins
+    if (orderStatus === 'collected' && order.meal) {
+      const today = new Date().toISOString().slice(0, 10);
+      await MealCheckIn.updateOne(
+        { userName: order.userName, meal: order.meal, date: today },
+        { orderStatus: 'completed' }
+      );
+    }
     res.json(order);
   } catch (err) {
     res.status(500).json({ error: err.message });

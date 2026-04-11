@@ -137,16 +137,18 @@
       const data = await res.json();
 
       if (res.ok) {
-        showResult('✅', 'Success!', data.message);
+        // Save meal to localStorage so app.js can use it when placing orders
+        localStorage.setItem('current_meal', meal);
+        showResult('✅', 'Success!', data.message, true);
       } else {
-        showResult('❌', 'Error', data.error);
+        showResult('❌', 'Error', data.error, false);
       }
     } catch (err) {
-      showResult('❌', 'Connection Error', 'Could not reach the server. Check your internet and try again.');
+      showResult('❌', 'Connection Error', 'Could not reach the server. Check your internet and try again.', false);
     }
   }
 
-  function showResult(icon, title, msg) {
+  function showResult(icon, title, msg, isSuccess) {
     document.getElementById('state-loading').style.display = 'none';
     document.getElementById('state-result').style.display = 'block';
     document.getElementById('res-icon').textContent = icon;

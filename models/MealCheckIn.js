@@ -13,6 +13,7 @@ const mealCheckInSchema = new mongoose.Schema({
   meal:     { type: String, enum: ['breakfast', 'lunch', 'dinner'], required: true },
   date:     { type: String, required: true }, // stored as "YYYY-MM-DD"
   scannedAt:{ type: Date, default: Date.now },
+  orderStatus: { type: String, enum: ['scanned', 'ordered', 'completed'], default: 'scanned' }, // track if they actually ordered
 });
 
 // Compound unique index: one meal per student per day

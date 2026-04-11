@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const orderSchema = new mongoose.Schema({
   userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   userName:  { type: String },
+  meal:      { type: String, enum: ['breakfast', 'lunch', 'dinner'] }, // which meal is this order for
   items: [{
     menuItemId: { type: mongoose.Schema.Types.ObjectId, ref: 'MenuItem' },
     name:  String,

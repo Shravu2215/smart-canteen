@@ -517,13 +517,14 @@ async function loadCheckins() {
     if (!checkins.length) { document.getElementById('checkins-table').innerHTML = '<p style="color:var(--text-light);padding:16px">No check-ins yet today.</p>'; return; }
     document.getElementById('checkins-table').innerHTML = `
       <table>
-        <thead><tr><th>Student</th><th>Mess ID</th><th>Meal</th><th>Time</th></tr></thead>
+        <thead><tr><th>Student</th><th>Mess ID</th><th>Meal</th><th>Check-in</th><th>Status</th></tr></thead>
         <tbody>${checkins.map(c => `
           <tr>
             <td>${c.userName || '—'}</td>
             <td>${c.messId}</td>
             <td><span class="badge ${c.meal}">${capitalize(c.meal)}</span></td>
             <td>${new Date(c.scannedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</td>
+            <td><span class="status-badge scanned" style="background: ${c.orderStatus === 'completed' ? '#4caf50' : c.orderStatus === 'ordered' ? '#ff9800' : '#2196f3'};">${capitalize(c.orderStatus || 'scanned')}</span></td>
           </tr>`).join('')}
         </tbody>
       </table>`;

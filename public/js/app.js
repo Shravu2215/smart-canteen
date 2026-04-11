@@ -115,7 +115,7 @@ async function studentLogin() {
 async function studentSignup() {
   const name  = document.querySelector('#screen-signup input[type=text]').value.trim();
   const phone = document.querySelector('#screen-signup input[type=tel]').value.trim();
-  const role  = document.querySelector('#screen-signup select').value;
+  const role  = document.getElementById('signup-role').value;
   const pw    = document.querySelector('#screen-signup input[type=password]').value.trim();
   if (!name || !phone || !pw) return showFormError('All fields are required.');
   try {
@@ -377,12 +377,16 @@ async function finalizeOrder(methodLabel) {
   const now   = new Date();
   let orderId = '#' + Math.floor(1000 + Math.random() * 9000);
 
+  // Get meal from localStorage (set after QR scan)
+  const currentMeal = localStorage.getItem('current_meal') || null;
+
   // Save order to MongoDB
   try {
     const orderPayload = {
       items: cart.map(i => ({ menuItemId: i._id || i.id, name: i.name, price: i.price, qty: i.qty })),
       total,
       paymentMethod: selectedPayment || 'cash',
+      meal: currentMeal, // include meal if scanned
     };
     const saved = await apiCall('/api/orders', 'POST', orderPayload);
     if (saved.orderId) orderId = saved.orderId;
