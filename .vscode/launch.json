@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "chrome",
+            "name": "http://127.0.0.1:3000/smart-canteen-backend/public/index.html?serverWindowId=82bbdbb5-ba76-4ac0-84ab-f4cac2a01b64",
+            "request": "launch",
+            "url": "http://127.0.0.1:3000/smart-canteen-backend/public/index.html?serverWindowId=82bbdbb5-ba76-4ac0-84ab-f4cac2a01b64"
+        }
+    ]
+}
